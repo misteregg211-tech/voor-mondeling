@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Kluis Kraker</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #0f172a;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+
+        section {
+            max-width: 600px;
+            margin: 30px auto;
+            padding: 25px;
+            background: #1e293b;
+            border-radius: 15px;
+        }
+
+        button, select {
+            padding: 12px;
+            margin: 5px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        button {
+            background: #06b6d4;
+            color: #0f172a;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background: #22d3ee;
+        }
+
+        .antwoord {
+            display: block;
+            width: 100%;
+            margin: 10px 0;
+        }
+
+        .verborgen {
+            display: none;
+        }
+
+        #timer {
+            color: #4ade80;
+            font-size: 24px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>🔐 Kluis Kraker</h1>
+
+    <section id="menu">
+        <h2>Breek in bij de Schoolbank</h2>
+        <p>Kraak 10 codes binnen 5 minuten!</p>
+
+        <label for="niveau">Moeilijkheid:</label>
+        <select id="niveau">
+            <option value="makkelijk">Makkelijk</option>
+            <option value="gemiddeld">Gemiddeld</option>
+            <option value="moeilijk">Moeilijk</option>
+        </select>
+
+        <h3>Kies je vakken</h3>
+
+        <label><input type="checkbox" value="wiskunde" checked> Wiskunde</label><br>
+        <label><input type="checkbox" value="geschiedenis" checked> Geschiedenis</label><br>
+        <label><input type="checkbox" value="aardrijkskunde" checked> Aardrijkskunde</label><br>
+        <label><input type="checkbox" value="wetenschap" checked> Wetenschap</label><br>
+        <label><input type="checkbox" value="taal" checked> Nederlands</label><br><br>
+
+        <button onclick="startSpel()">Start spel</button>
+        <p id="foutmelding"></p>
+    </section>
+
+    <section id="spel" class="verborgen">
+        <p id="timer">05:00</p>
+        <p>Score: <span id="score">0</span></p>
+        <p>Codes gekraakt: <span id="voortgang">0</span> / 10</p>
+        <p>Fouten: <span id="fouten">0</span> / 4</p>
+
+        <h2 id="vraag"></h2>
+        <div id="antwoorden"></div>
+        <p id="feedback"></p>
+        <button id="volgende" class="verborgen" onclick="volgendeVraag()">
+            Volgende vraag
+        </button>
+    </section>
+
+    <section id="resultaat" class="verborgen">
+        <h2 id="eindtitel"></h2>
+        <p id="eindbericht"></p>
+        <p>Eindscore: <span id="eindscore">0</span></p>
+        <button onclick="terugNaarMenu()">Opnieuw spelen</button>
+    </section>
+
+    <script>
+        const vragen = [
+            {
+                vak: "wiskunde",
+                niveau: "makkelijk",
+                vraag: "Hoeveel is 3 × 4?",
+                antwoorden: ["7", "12", "15", "10"],
+                goed: "12"
+            },
+            {
+                vak: "wiskunde",
+                niveau: "gemiddeld",
+                vraag: "Hoeveel is 15% van 200?",
+                antwoorden: ["20", "25", "30", "35"],
+                goed: "30"
+            },
+            {
+                vak: "wiskunde",
+                niveau: "moeilijk",
+                vraag: "Los op: 2x = 18.",
+                antwoorden: ["6", "8", "9", "12"],
+                goed: "9"
+            },
+            {
+                vak: "geschiedenis",
+                niveau: "makkelijk",
+                vraag: "In welk jaar begon de Tachtigjarige Oorlog?",
+                antwoorden: ["1568", "1648", "1602", "1492"],
+                goed: "1568"
+            },
+            {
+                vak: "geschiedenis",
+                niveau: "gemiddeld",
+                vraag: "In welk jaar werd de VOC opgericht?",
+                antwoorden: ["1500", "1602", "1700", "1648"],
+                goed: "1602"
+            },
+            {
+                vak: "geschiedenis",
+                niveau: "moeilijk",
+                vraag: "In welk jaar viel de Berlijnse Muur?",
+                antwoorden: ["1979", "1989", "1991", "1999"],
+                goed: "1989"
+            },
+            {
+                vak: "aardrijkskunde",
+                niveau: "makkelijk",
+                vraag: "Wat is de hoofdstad van Canada?",
+                antwoorden: ["Toronto", "Ottawa", "Vancouver", "Montreal"],
+                goed: "Ottawa"
+            },
+            {
+                vak: "aardrijkskunde",
+                niveau: "gemiddeld",
+                vraag: "Wat is de hoofdstad van Australië?",
+                antwoorden: ["Sydney", "Melbourne", "Canberra", "Perth"],
+                goed: "Canberra"
+            },
+            {
+                vak: "aardrijkskunde",
+                niveau: "moeilijk",
+                vraag: "Welke oceaan ligt tussen Afrika en Australië?",
+                antwoorden: ["Atlantische", "Stille", "Indische", "Noordelijke IJszee"],
+                goed: "Indische"
+            },
+            {
+                vak: "wetenschap",
+                niveau: "makkelijk",
+                vraag: "Bij welke temperatuur smelt ijs?",
+                antwoorden: ["0 °C", "10 °C", "50 °C", "100 °C"],
+                goed: "0 °C"
+            },
+            {
+                vak: "wetenschap",
+                niveau: "gemiddeld",
+                vraag: "Welke formule hoort bij de wet van Ohm?",
+                antwoorden: ["U = I × R", "U = I + R", "U = I - R", "U = I / R"],
+                goed: "U = I × R"
+            },
+            {
+                vak: "wetenschap",
+                niveau: "moeilijk",
+                vraag: "Uit welke atomen bestaat CO₂?",
+                antwoorden: ["1 C en 2 O", "2 C en 1 O", "2 H en 1 O", "1 C en 1 O"],
+                goed: "1 C en 2 O"
+            },
+            {
+                vak: "taal",
+                niveau: "makkelijk",
+                vraag: "Wat is het voltooid deelwoord van gebeuren?",
+                antwoorden: ["Gebeurt", "Gebeurd", "Gabeurd", "Gebeurdt"],
+                goed: "Gebeurd"
+            },
+            {
+                vak: "taal",
+                niveau: "gemiddeld",
+                vraag: "Welke zin is correct?",
+                antwoorden: [
+                    "Wij hebben vandaag gewonnen.",
+                    "Wij vandaag hebben gewonnen.",
+                    "Vandaag gewonnen wij hebben.",
+                    "Hebben wij gewonnen vandaag."
+                ],
+                goed: "Wij hebben vandaag gewonnen."
+            },
+            {
+                vak: "taal",
+                niveau: "moeilijk",
+                vraag: "Welke spelling is correct?",
+                antwoorden: ["Onmiddelijk", "Onmiddellijk", "Onmidelijk", "Onmiddelijkk"],
+                goed: "Onmiddellijk"
+            }
+        ];
+
+        let actieveVragen = [];
+        let nummer = 0;
+        let score = 0;
+        let fouten = 0;
+        let seconden = 300;
+        let timer;
+
+        function startSpel() {
+            const vakken = [...document.querySelectorAll(
+                'input[type="checkbox"]:checked'
+            )].map(input => input.value);
+
+            const niveau = document.getElementById("niveau").value;
+
+            if (vakken.length === 0) {
+                document.getElementById("foutmelding").textContent =
+                    "Kies minstens één vak!";
+                return;
+            }
+
+            actieveVragen = vragen.filter(v =>
+                vakken.includes(v.vak) && v.niveau === niveau
+            );
+
+            if (actieveVragen.length < 10) {
+                actieveVragen = vragen.filter(v => vakken.includes(v.vak));
+            }
+
+            actieveVragen = [...actieveVragen]
+                .sort(() => Math.random() - 0.5)
+                .slice(0, 10);
+
+            if (actieveVragen.length === 0) {
+                document.getElementById("foutmelding").textContent =
+                    "Er zijn geen vragen beschikbaar voor deze keuze.";
+                return;
+            }
+
+            nummer = 0;
+            score = 0;
+            fouten = 0;
+            seconden = 300;
+
+            document.getElementById("foutmelding").textContent = "";
+            document.getElementById("menu").classList.add("verborgen");
+            document.getElementById("resultaat").classList.add("verborgen");
+            document.getElementById("spel").classList.remove("verborgen");
+
+            werkSchermBij();
+
+            clearInterval(timer);
+            timer = setInterval(() => {
+                seconden--;
+                toonTijd();
+
+                if (seconden <= 0) {
+                    eindigSpel(false);
+                }
+            }, 1000);
+
+            toonVraag();
+        }
+
+        function toonVraag() {
+            if (nummer >= actieveVragen.length) {
+                eindigSpel(true);
+                return;
+            }
+
+            const vraag = actieveVragen[nummer];
+
+            document.getElementById("vraag").textContent = vraag.vraag;
+            document.getElementById("feedback").textContent = "";
+            document.getElementById("volgende").classList.add("verborgen");
+
+            const antwoorden = document.getElementById("antwoorden");
+            antwoorden.innerHTML = "";
+
+            [...vraag.antwoorden]
+                .sort(() => Math.random() - 0.5)
+                .forEach(antwoord => {
+                    const knop = document.createElement("button");
+                    knop.textContent = antwoord;
+                    knop.className = "antwoord";
+
+                    knop.onclick = () => controleerAntwoord(
+                        antwoord === vraag.goed, antwoord
+                    );
+
+                    antwoorden.appendChild(knop);
+                });
+        }
+
+        function controleerAntwoord(goed, antwoord) {
+            const knoppen = document.querySelectorAll("#antwoorden button");
+            knoppen.forEach(knop => knop.disabled = true);
+
+            if (goed) {
+                score += 100;
+                document.getElementById("feedback").textContent =
+                    "Goed gedaan! Code gekraakt.";
+            } else {
+                fouten++;
+                seconden = Math.max(0, seconden - 15);
+
+                document.getElementById("feedback").textContent =
+                    "Helaas! Het juiste antwoord is: " +
+                    actieveVragen[nummer].goed;
+            }
+
+            nummer++;
+            werkSchermBij();
+
+            if (fouten >= 4 || seconden <= 0) {
+                eindigSpel(false);
+                return;
+            }
+
+            document.getElementById("volgende").classList.remove("verborgen");
+        }
+
+        function volgendeVraag() {
+            toonVraag();
+        }
+
+        function werkSchermBij() {
+            document.getElementById("score").textContent = score;
+            document.getElementById("fouten").textContent = fouten;
+            document.getElementById("voortgang").textContent = nummer;
+            toonTijd();
+        }
+
+        function toonTijd() {
+            const min = Math.floor(seconden / 60);
+            const sec = seconden % 60;
+
+            document.getElementById("timer").textContent =
+                String(min).padStart(2, "0") + ":" +
+                String(sec).padStart(2, "0");
+        }
+
+        function eindigSpel(gewonnen) {
+            clearInterval(timer);
+
+            document.getElementById("spel").classList.add("verborgen");
+            document.getElementById("resultaat").classList.remove("verborgen");
+
+            document.getElementById("eindtitel").textContent =
+                gewonnen ? "🔓 Kluis gekraakt!" : "🚨 Missie mislukt!";
+
+            document.getElementById("eindbericht").textContent =
+                gewonnen
+                    ? "Goed gedaan! Je hebt alle codes gekraakt."
+                    : "De beveiliging heeft the kluis geblokkeerd.";
+
+            document.getElementById("eindscore").textContent = score;
+        }
+
+        function terugNaarMenu() {
+            clearInterval(timer);
+            document.getElementById("resultaat").classList.add("verborgen");
+            document.getElementById("menu").classList.remove("verborgen");
+        }
+    </script>
+
+</body>
+</html>
